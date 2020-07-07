@@ -28,11 +28,13 @@
 
 * :hibiscus: Modules Supported
 
-* BSPWM
-* :lemon: Lemon
+* bspwm
+* lemon
 * xst
+* TODO rofi
 
 * :hibiscus: Usage
+#+BEGIN_SRC
 theme <options>
   options:
     -h | --help         show help
@@ -42,4 +44,4 @@ theme <options>
     -s | --list         list themes
     -r | --reload       reload last selected theme
     -e | --edit         edit the theme.yml file
-
+#+END_SRC
