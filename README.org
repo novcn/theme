@@ -28,10 +28,10 @@
 
 * :hibiscus: Modules Supported
 
-* bspwm
-* lemon
-* xst
-* TODO rofi
+** bspwm
+** lemon
+** xst
+** TODO rofi
 
 * :hibiscus: Usage
 #+BEGIN_SRC
