@@ -2,7 +2,7 @@
 *Theme* is a script which handles loading of themes defined in =yaml= and environment variables.
 
 * :hibiscus: Configuration
-*Example* configuration can be seen at [[index.yml][https://github.com/novcn/theme/blob/master/themes/index.yml]], below is a snippet with added comments
+*Example* configuration can be seen at [[themes/index.yml][themes/index.yml]], below is a snippet with added comments
 #+BEGIN_SRC yaml
   # The name of the theme
   voxcity:
