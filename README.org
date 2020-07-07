@@ -1,0 +1,45 @@
+* :hibiscus: Theme
+*Theme* is a script which handles loading of themes defined in =yaml= and environment variables.
+
+* :hibiscus: Configuration
+*Example* configuration can be seen at [[index.yml][themes/index.yml]], below is a snippet
+#+BEGIN_SRC yaml
+  # The name of the theme
+  voxcity:
+    colors:
+      # In this example colors are defined by shell variables
+      type: shell
+      # Reference to the colors file
+      file: "${THEME_DIR}/themes/voxcity/colors"
+    # Reference to the wallpaper to use
+    wallpaper: "${THEME_DIR}/themes/voxcity/wall.png"
+    # Bspwm configuration option
+    bspwm:
+      # These are straight values, set with `bspc config <key> <value>`
+      values:
+        window_gap: 32
+        split_ratio: 0.45
+        border_width: 4
+      # These are references, the `E` prefix denotes an environment variable from which to load the value
+      refs:
+        normal_border_color: "E:color8"
+        focused_border_color: "E:color10"
+#+END_SRC
+
+* :hibiscus: Modules Supported
+
+* BSPWM
+* :lemon: Lemon
+* xst
+
+* :hibiscus: Usage
+theme <options>
+  options:
+    -h | --help         show help
+    -v | --verbose      verbose output
+    -t | --load <name>  load the theme <name>
+    -l | --light        apply the light varient of the selected theme
+    -s | --list         list themes
+    -r | --reload       reload last selected theme
+    -e | --edit         edit the theme.yml file
+

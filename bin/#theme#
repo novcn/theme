@@ -1,0 +1,206 @@
+ #!/usr/bin/env bash
+ <
+de 
+
+THEME_DIR=$HOME/.themes
+
+theme_file=${THEME_DIR}/themes/index.yml
+x_colors_file="${THEME_DIR}/cache/colors.xrdb"
+x_font_file="${THEME_DIR}/cache/font.xrdb"
+
+mkdir -p $(dirname "$x_colors_file")
+
+# TODO or exit
+theme_data="$(<"$theme_file")"
+
+json=$(yq . <<< "$theme_data")
+
+# Defaults
+VERBOSE=0
+LIGHT=0
+RELOAD=0
+LIST=0
+EDIT=0
+THEME=""
+
+show_help() {
+    cat > /dev/stdout <<EOF
+${0} [ options ]
+
+  options:
+    -h | --help         show help
+    -v | --verbose      verbose output
+    -t | --load <name>  load the theme <name>
+    -l | --light        apply the light varient of the selected theme
+    -s | --list         list themes
+    -r | --reload       reload last selected theme
+    -e | --edit         edit the theme.yml file
+${0} [ -l ] [ -r ] [ -t <theme-name> ] [ -v ] [ -h ]
+EOF
+}
+
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    -h|--help)
+      show_help
+      exit 0
+      ;;
+    -v|--verbose)
+      VERBOSE=1
+      ;;
+    -t|--load)
+      THEME=$2
+      shift
+      ;;
+    -l|--light)
+      LIGHT=1
+      ;;
+    -s|--list)
+      LIST=1
+      ;;
+    -r|--reload)
+      RELOAD=1
+      ;;
+    -e|--edit)
+      EDIT=1
+      ;;
+  esac
+  shift
+done
+
+set -e
+
+# 
+# List themes by name
+# 
+[[ "$LIST" == "1" ]] && {
+  jq -r '.themes | keys[]' <<< "$json"
+  exit 0
+}
+
+#
+# Use EDITOR to open theme file
+#
+[[ "$EDIT" == "1" ]] && {
+  [[ "$EDITOR" == "" ]] && {
+    echo "No EDITOR found" 
+    exit 1
+  }
+  echo "editing ${theme_file}..."
+  eval "$EDITOR" "$theme_file"
+}
+
+#
+# Reload config
+#
+[[ "$RELOAD" == "1" ]] && {
+  current_theme=$(jq .current.theme <<< "$json")
+  [[ "$LIGHT" == "0" ]] && {
+    LIGHT=$(jq -r 'if .current.light then "1" else "0" end'  <<< "$json")
+  }
+  theme=$(jq .themes["$current_theme"] <<< "$json")
+} || {
+  theme=$(jq .themes[\""$THEME\""] <<< "$json")
+}
+
+x_colors_from_shell() {
+  file=${1:?}
+  while IFS='=' read -r key value _; do
+    # Comment
+    [[ "$key" != "" ]] && [[ "$value" == "" ]] && {
+      echo ""
+      echo "! ${key#\#}"
+    }
+
+    # Color and value
+    [[ "$key" != "" ]] && [[ "$value" != "" ]] && {
+      echo "*${key}:  ${value//\'}"
+      echo "*.${key}:  ${value//\'}"
+
+    }
+  done < "$file"
+}
+
+#
+# Set the wallpaper
+#
+set_wallpaper() {
+  echo "wallpaper"
+  file=${1:?}
+  feh --bg-fill "$file"
+}
+
+#
+# Set X colors
+#
+set_colors() {
+  echo "colors"
+  xrdb -merge "$x_colors_file"
+}
+
+deref_color() {
+  ref=${1:?}
+  color_idx=$(cut -d ':' -f 2 <<< "$ref")
+  eval color='$'"color${color_idx}"
+  echo "$color"
+}
+
+#
+# Bspwm configuration
+#
+set_bspwm_config() {
+  echo "bspwm config"
+  theme="${1:?}"
+
+  # Set configs based on values
+  for key in $(jq -r '.bspwm.values | keys[]' <<< "$theme"); do
+    value=$(jq -r '.bspwm.values["'$key'"]' <<< "$theme")
+    bspc config "$key" "$value"
+  done
+
+  # Set configs based on references
+  for key in $(jq -r '.bspwm.refs | keys[]' <<< "$theme"); do
+    ref=$(jq -r '.bspwm.refs["'$key'"]' <<< "$theme")
+    value=$(deref_color "$ref")
+    bspc config "$key" "$value"
+  done
+}
+
+update_xst() {
+  killall -SIGUSR1 xst
+}
+
+update_lemon() {
+  pkill -SIGUSR1 display
+}
+
+#
+# Wal configuration
+# 
+
+# required
+eval wallpaper=$(jq -r .wallpaper <<< "$theme")
+echo "wallpaper"
+
+colors_type=$(jq -r .colors.type <<< "$theme")
+if [[ "$colors_type" == "wal" ]]; then
+  echo "generating theme with wal"
+  set -x
+  wal_backend=$(jq -r .colors.backend <<< "$theme")
+
+  [[ "$LIGHT" == "1" ]] \
+    &&  wal -i "$wallpaper" --backend "$wal_backend" -l \
+    || wal -i "$wallpaper" --backend "$wal_backend"
+  source $HOME/.cache/wal/colors.sh
+else
+  echo "generating theme with colors file"
+  eval colors_file=$(jq -r .colors.file <<< "$theme")
+  source "$colors_file"
+  x_colors_from_shell "$colors_file" > "$x_colors_file"
+  set_wallpaper "$wallpaper"
+  set_colors
+fi
+
+set_bspwm_config "$theme"
+update_xst
+update_lemon

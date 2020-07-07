@@ -1,0 +1,49 @@
+current:
+  theme: voxcity
+  light: false
+
+themes:
+  voxcity:
+    colors:
+      type: shell
+      file: "${THEME_DIR}/themes/voxcity/colors"
+    wallpaper: "${THEME_DIR}/themes/voxcity/wall.png"
+    bspwm:
+      values:
+        window_gap: 32
+        split_ratio: 0.45
+        border_width: 4
+      refs:
+        normal_border_color: "C:8"
+        focused_border_color: "C:10"
+        presel_feedback_color: "C:15"
+
+  factory:
+    colors:
+      type: shell
+      file: "${THEME_DIR}/themes/factory/colors"
+    wallpaper: "${THEME_DIR}/themes/factory/factory.jpg"
+    bspwm:
+      values:
+        window_gap: 45
+        split_ratio: 0.55
+        border_width: 5
+      refs:
+        normal_border_color: "C:8"
+        focused_border_color: "C:10"
+        presel_feedback_color: "C:15"
+
+  sadboy:
+    colors:
+      type: wal
+      backend: haishoku
+    wallpaper: "${THEME_DIR}/themes/sadboy/wall.jpg"
+    bspwm:
+      values:
+        window_gap: 10
+        split_ratio: 0.5
+        border_width: 7
+      refs:
+        normal_border_color: "C:8"
+        focused_border_color: "C:10"
+        presel_feedback_color: "C:15"

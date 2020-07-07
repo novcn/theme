@@ -1,0 +1,149 @@
+
+! special
+*foreground:  '#ffdf8f'
+*background:  '#1d1821'
+*cursorColor:  '#ffdf8f'
+
+! black
+*color0:  '#282a2e'
+*color8:  '#373b41'
+
+! red
+*color1:  '#fe72d6'
+*color9:  '#fe72d6'
+
+! green
+*color2:  '#ccfda2'
+*color10:  '#ccfda2'
+
+! yellow
+*color3:  '#e50a12'
+*color11:  '#e50a12'
+
+! blue
+*color4:  '#6cf0f9'
+*color12:  '#6cf0f9'
+
+! magenta
+*color5:  '#fffeb3'
+*color13:  '#fffeb3'
+
+! cyan
+*color6:  '#e66d22'
+*color14:  '#e66d22'
+
+! white
+*color7:  '#c3ff97''
+*color15:  '#c3ff97''
+
+! special
+*foreground:  #ffdf8f
+*.foreground:  #ffdf8f
+*background:  #1d1821
+*.background:  #1d1821
+*cursorColor:  #ffdf8f
+*.cursorColor:  #ffdf8f
+
+! black
+*color0:  #282a2e
+*.color0:  #282a2e
+*color8:  #373b41
+*.color8:  #373b41
+
+! red
+*color1:  #fe72d6
+*.color1:  #fe72d6
+*color9:  #fe72d6
+*.color9:  #fe72d6
+
+! green
+*color2:  #ccfda2
+*.color2:  #ccfda2
+*color10:  #ccfda2
+*.color10:  #ccfda2
+
+! yellow
+*color3:  #e50a12
+*.color3:  #e50a12
+*color11:  #e50a12
+*.color11:  #e50a12
+
+! blue
+*color4:  #6cf0f9
+*.color4:  #6cf0f9
+*color12:  #6cf0f9
+*.color12:  #6cf0f9
+
+! magenta
+*color5:  #fffeb3
+*.color5:  #fffeb3
+*color13:  #fffeb3
+*.color13:  #fffeb3
+
+! cyan
+*color6:  #e66d22
+*.color6:  #e66d22
+*color14:  #e66d22
+*.color14:  #e66d22
+
+! white
+*color7:  #c3ff97
+*.color7:  #c3ff97
+*color15:  #c3ff97
+*.color15:  #c3ff97
+
+! special
+*foreground:  #ffdf8f
+*.foreground:  #ffdf8f
+*background:  #1d1821
+*.background:  #1d1821
+*cursorColor:  #ffdf8f
+*.cursorColor:  #ffdf8f
+
+! black
+*color0:  #282a2e
+*.color0:  #282a2e
+*color8:  #373b41
+*.color8:  #373b41
+
+! red
+*color1:  #fe72d6
+*.color1:  #fe72d6
+*color9:  #fe72d6
+*.color9:  #fe72d6
+
+! green
+*color2:  #ccfda2
+*.color2:  #ccfda2
+*color10:  #ccfda2
+*.color10:  #ccfda2
+
+! yellow
+*color3:  #e50a12
+*.color3:  #e50a12
+*color11:  #e50a12
+*.color11:  #e50a12
+
+! blue
+*color4:  #6cf0f9
+*.color4:  #6cf0f9
+*color12:  #6cf0f9
+*.color12:  #6cf0f9
+
+! magenta
+*color5:  #fffeb3
+*.color5:  #fffeb3
+*color13:  #fffeb3
+*.color13:  #fffeb3
+
+! cyan
+*color6:  #e66d22
+*.color6:  #e66d22
+*color14:  #e66d22
+*.color14:  #e66d22
+
+! white
+*color7:  #c3ff97
+*.color7:  #c3ff97
+*color15:  #c3ff97
+*.color15:  #c3ff97
