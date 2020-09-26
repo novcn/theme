@@ -233,7 +233,6 @@ update_xrdb() {
   for key in $(jq -r '.refs | keys[]' <<< "$manifest"); do
     ref=$(jq -r '.refs["'$key'"]' <<< "$manifest")
     value=$(deref "$ref")
-    echo "${key}: $value"
     echo "${key}: $value" | xrdb -merge
   done
   reload_xst
