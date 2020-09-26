@@ -2,7 +2,6 @@
 
 THEME_DIR=$HOME/.themes
 
-
 theme_file=${THEME_DIR}/themes/index.yml
 x_colors_file="${THEME_DIR}/cache/colors.xrdb"
 x_font_file="${THEME_DIR}/cache/font.xrdb"
@@ -22,6 +21,11 @@ LIST=0
 EDIT=0
 THEME=""
 
+die() {
+  echo "$@" >2
+  exit 1
+}
+
 show_help() {
     cat > /dev/stdout <<EOF
 ${0} [ options ]
@@ -30,8 +34,8 @@ ${0} [ options ]
     -h | --help         show help
     -v | --verbose      verbose output
     -t | --load <name>  load the theme <name>
-    -l | --light        apply the light varient of the selected theme
-    -s | --list         list themes
+    -l | --list         list themes
+    -v | --invert       invert theme colors
     -r | --reload       reload last selected theme
     -e | --edit         edit the theme.yml file
 ${0} [ -l ] [ -r ] [ -t <theme-name> ] [ -v ] [ -h ]
@@ -51,11 +55,9 @@ while [[ "$#" -gt 0 ]]; do
       THEME=$2
       shift
       ;;
-    -l|--light)
-      LIGHT=1
-      ;;
-    -s|--list)
-      LIST=1
+    -l|--list)
+      jq -r '.themes | keys[]' <<< "$json"
+      exit 0
       ;;
     -r|--reload)
       RELOAD=1
@@ -87,6 +89,7 @@ set -e
   }
   echo "editing ${theme_file}..."
   eval "$EDITOR" "$theme_file"
+  exit 0
 }
 
 #
@@ -133,7 +136,6 @@ set_wallpaper() {
 # Set X colors
 #
 set_colors() {
-  echo "colors"
   xrdb -merge "$x_colors_file"
 }
 
@@ -142,6 +144,33 @@ deref_color() {
   color_idx=$(cut -d ':' -f 2 <<< "$ref")
   eval color='$'"color${color_idx}"
   echo "$color"
+}
+
+deref_font() {
+  ref="${1:?}"
+  defn=$(jq -r '.fonts["'$ref'"]' <<< "$json")
+  size=$(jq -r '.size' <<< "$defn")
+  fullname=$(jq -r '.fullname' <<< "$defn")
+  dpi=$(xrdb -query | awk '/Xft.dpi/ {print $2}')
+  size=$(echo "scale=2; $dpi / 100 * $size" | bc | cut -d '.' -f 1)
+  echo "${fullname}:pixelsize=${size}px"
+}
+
+deref() {
+  ref="${1:?}"
+  kind=$(cut -d ':' -f 1 <<< "$ref")
+  ref=$(cut -d ':' -f 2 <<< "$ref")
+  case "$kind" in
+    "C" | "COLOR")
+      deref_color "$ref"
+      ;;
+    "F" | "FONT")
+      deref_font "$ref"
+      ;;
+    *)
+      die "Invalid reference kind: $kind"
+      ;;
+  esac
 }
 
 #
@@ -160,16 +189,16 @@ set_bspwm_config() {
   # Set configs based on references
   for key in $(jq -r '.bspwm.refs | keys[]' <<< "$theme"); do
     ref=$(jq -r '.bspwm.refs["'$key'"]' <<< "$theme")
-    value=$(deref_color "$ref")
+    value=$(deref "$ref")
     bspc config "$key" "$value"
   done
 }
 
-update_xst() {
+reload_xst() {
   killall -SIGUSR1 xst
 }
 
-update_lemon() {
+reload_lemon() {
   pkill -SIGUSR1 display
 }
 
@@ -177,29 +206,42 @@ update_lemon() {
 # Wal configuration
 # 
 
-# required
-eval wallpaper=$(jq -r .wallpaper <<< "$theme")
-echo "wallpaper"
+update_bspwm() {
+  manifest="${1:?}"
+  echo "update bspwm : $manifest"
+}
 
-colors_type=$(jq -r .colors.type <<< "$theme")
-if [[ "$colors_type" == "wal" ]]; then
-  echo "generating theme with wal"
-  set -x
-  wal_backend=$(jq -r .colors.backend <<< "$theme")
+update_wallpaper() {
+  eval manifest=${1:?}
+  feh --bg-fill "$manifest"
+}
 
-  [[ "$LIGHT" == "1" ]] \
-    &&  wal -i "$wallpaper" --backend "$wal_backend" -l \
-    || wal -i "$wallpaper" --backend "$wal_backend"
-  source $HOME/.cache/wal/colors.sh
-else
-  echo "generating theme with colors file"
-  eval colors_file=$(jq -r .colors.file <<< "$theme")
+update_colors() {
+  manifest=${1:?}
+  colors_type=$(jq -r .type <<< "$manifest")
+  eval colors_file=$(jq -r .file <<< "$manifest")
   source "$colors_file"
   x_colors_from_shell "$colors_file" > "$x_colors_file"
-  set_wallpaper "$wallpaper"
-  set_colors
-fi
+  xrdb -merge "$x_colors_file"
+  reload_xst
+  reload_lemon
+}
 
-set_bspwm_config "$theme"
-update_xst
-update_lemon
+update_xrdb() {
+  manifest="${1:?}"
+  # Set configs based on references
+  for key in $(jq -r '.refs | keys[]' <<< "$manifest"); do
+    ref=$(jq -r '.refs["'$key'"]' <<< "$manifest")
+    value=$(deref "$ref")
+    echo "${key}: $value"
+    echo "${key}: $value" | xrdb -merge
+  done
+  reload_xst
+  reload_lemon
+}
+
+for section in $(jq -r keys[] <<< "$theme"); do
+  manifest=$(jq -r -c ."$section" <<< "$theme")
+  update_"$section" "$manifest"
+done
+
