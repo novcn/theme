@@ -1,14 +1,14 @@
 current:
   theme: voxcity
-  light: false
+  invert: false
 
 # Font size declaration for 100 DPI displays. End size will be calculated
 fonts:
   iosevka:
-    size: 13
+    size: 14
     fullname: "Iosevka Term"
   cozette:
-    size: 13
+    size: 17
     fullname: "CozetteVector"
 
 # Theme specific values applied after host values
