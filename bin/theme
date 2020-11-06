@@ -26,6 +26,13 @@ die() {
   exit 1
 }
 
+trace() {
+  [[ "$VERBOSE" == "1" ]] && {
+    echo -e "\\033[93m-->: \\033[97m$*\\033[39m"
+  }
+}
+
+
 show_help() {
     cat > /dev/stdout <<EOF
 ${0} [ options ]
@@ -177,19 +184,21 @@ deref() {
 # Bspwm configuration
 #
 set_bspwm_config() {
-  echo "bspwm config"
-  theme="${1:?}"
+  local manifest="${1:?}"
+  trace "set bspwm config $manifest"
 
   # Set configs based on values
-  for key in $(jq -r '.bspwm.values | keys[]' <<< "$theme"); do
-    value=$(jq -r '.bspwm.values["'$key'"]' <<< "$theme")
+  for key in $(jq -r '.values | keys[]' <<< "$manifest"); do
+    value=$(jq -r '.values["'$key'"]' <<< "$manifest")
+    trace "bspwm config by value - key : $key value: $value"
     bspc config "$key" "$value"
   done
 
   # Set configs based on references
-  for key in $(jq -r '.bspwm.refs | keys[]' <<< "$theme"); do
-    ref=$(jq -r '.bspwm.refs["'$key'"]' <<< "$theme")
+  for key in $(jq -r '.refs | keys[]' <<< "$manifest"); do
+    ref=$(jq -r '.refs["'$key'"]' <<< "$manifest")
     value=$(deref "$ref")
+    trace "bspwm config by reference - ref : $ref key : $key value : $value"
     bspc config "$key" "$value"
   done
 }
@@ -202,25 +211,32 @@ reload_lemon() {
   pkill -SIGUSR1 display
 }
 
+load_environment_variables() {
+  manifest="${1:?}"
+  eval colors_file=$(jq -r .colors.file <<< "$manifest")
+  source "$colors_file"
+}
+
 #
 # Wal configuration
 # 
 
 update_bspwm() {
-  manifest="${1:?}"
-  echo "update bspwm : $manifest"
+  local manifest="${1:?}"
+  trace "update bspwm : $manifest"
+  set_bspwm_config "$manifest"
 }
 
 update_wallpaper() {
   eval manifest=${1:?}
+  trace "update wallpaper : $manifest"
   feh --bg-fill "$manifest"
 }
 
 update_colors() {
-  manifest=${1:?}
+  local manifest=${1:?}
+  trace "update colors : $manifest"
   colors_type=$(jq -r .type <<< "$manifest")
-  eval colors_file=$(jq -r .file <<< "$manifest")
-  source "$colors_file"
   x_colors_from_shell "$colors_file" > "$x_colors_file"
   xrdb -merge "$x_colors_file"
   reload_xst
@@ -228,7 +244,8 @@ update_colors() {
 }
 
 update_xrdb() {
-  manifest="${1:?}"
+  local manifest="${1:?}"
+  trace "update xrdb : $manifest"
   # Set configs based on references
   for key in $(jq -r '.refs | keys[]' <<< "$manifest"); do
     ref=$(jq -r '.refs["'$key'"]' <<< "$manifest")
@@ -238,6 +255,8 @@ update_xrdb() {
   reload_xst
   reload_lemon
 }
+
+load_environment_variables "$theme"
 
 for section in $(jq -r keys[] <<< "$theme"); do
   manifest=$(jq -r -c ."$section" <<< "$theme")
