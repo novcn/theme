@@ -4,9 +4,9 @@ THEME_DIR=$HOME/.themes
 
 theme_file=${THEME_DIR}/themes/index.yml
 x_colors_file="${THEME_DIR}/cache/colors.xrdb"
-x_font_file="${THEME_DIR}/cache/font.xrdb"
+#x_font_file="${THEME_DIR}/cache/font.xrdb"
 
-mkdir -p $(dirname "$x_colors_file")
+mkdir -p "$(dirname "$x_colors_file")"
 
 # TODO or exit
 theme_data="$(<"$theme_file")"
@@ -22,16 +22,15 @@ EDIT=0
 THEME=""
 
 die() {
-  echo "$@" >2
+  echo "$@" >&2
   exit 1
 }
 
 trace() {
-  [[ "$VERBOSE" == "1" ]] && {
+  if [[ "$VERBOSE" == "1" ]]; then
     echo -e "\\033[93m-->: \\033[97m$*\\033[39m"
-  }
+  fi
 }
-
 
 show_help() {
     cat > /dev/stdout <<EOF
@@ -60,7 +59,12 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     -t|--load)
       THEME=$2
-      shift
+      # Fuzzy load the theme if it's not passed
+      if [[ "$THEME" == "" ]] || [[ "${THEME:0:1}" == "-" ]]; then
+        THEME=$("$0" -l | fzf -1)
+      else
+        shift
+      fi
       ;;
     -l|--list)
       jq -r '.themes | keys[]' <<< "$json"
@@ -76,9 +80,7 @@ while [[ "$#" -gt 0 ]]; do
   shift
 done
 
-set -e
-
-# 
+#
 # List themes by name
 # 
 [[ "$LIST" == "1" ]] && {
@@ -102,18 +104,18 @@ set -e
 #
 # Reload config
 #
-[[ "$RELOAD" == "1" ]] && {
+if [[ "$RELOAD" == "1" ]]; then
   current_theme=$(jq .current.theme <<< "$json")
   [[ "$LIGHT" == "0" ]] && {
     LIGHT=$(jq -r 'if .current.light then "1" else "0" end'  <<< "$json")
   }
   theme=$(jq .themes["$current_theme"] <<< "$json")
-} || {
+else
   theme=$(jq .themes[\""$THEME\""] <<< "$json")
-}
+fi
 
 x_colors_from_shell() {
-  file=${1:?}
+  local file=${1:?}
   while IFS='=' read -r key value _; do
     # Comment
     [[ "$key" != "" ]] && [[ "$value" == "" ]] && {
@@ -147,26 +149,26 @@ set_colors() {
 }
 
 deref_color() {
-  ref=${1:?}
-  color_idx=$(cut -d ':' -f 2 <<< "$ref")
+  local ref=${1:?}
+  local color_idx=$(cut -d ':' -f 2 <<< "$ref")
   eval color='$'"color${color_idx}"
   echo "$color"
 }
 
 deref_font() {
-  ref="${1:?}"
-  defn=$(jq -r '.fonts["'$ref'"]' <<< "$json")
-  size=$(jq -r '.size' <<< "$defn")
-  fullname=$(jq -r '.fullname' <<< "$defn")
-  dpi=$(xrdb -query | awk '/Xft.dpi/ {print $2}')
-  size=$(echo "scale=2; $dpi / 100 * $size" | bc | cut -d '.' -f 1)
+  local ref="${1:?}"
+  local defn=$(jq -r '.fonts["'"$ref"'"]' <<< "$json")
+  local size=$(jq -r '.size' <<< "$defn")
+  local fullname=$(jq -r '.fullname' <<< "$defn")
+  local dpi=$(xrdb -query | awk '/Xft.dpi/ {print $2}')
+  local size=$(echo "scale=2; $dpi / 100 * $size" | bc | cut -d '.' -f 1)
   echo "${fullname}:pixelsize=${size}px"
 }
 
 deref() {
-  ref="${1:?}"
-  kind=$(cut -d ':' -f 1 <<< "$ref")
-  ref=$(cut -d ':' -f 2 <<< "$ref")
+  local ref="${1:?}"
+  local kind=$(cut -d ':' -f 1 <<< "$ref")
+  local ref=$(cut -d ':' -f 2 <<< "$ref")
   case "$kind" in
     "C" | "COLOR")
       deref_color "$ref"
@@ -189,14 +191,14 @@ set_bspwm_config() {
 
   # Set configs based on values
   for key in $(jq -r '.values | keys[]' <<< "$manifest"); do
-    value=$(jq -r '.values["'$key'"]' <<< "$manifest")
+    value=$(jq -r '.values["'"$key"'"]' <<< "$manifest")
     trace "bspwm config by value - key : $key value: $value"
     bspc config "$key" "$value"
   done
 
   # Set configs based on references
   for key in $(jq -r '.refs | keys[]' <<< "$manifest"); do
-    ref=$(jq -r '.refs["'$key'"]' <<< "$manifest")
+    ref=$(jq -r '.refs["'"$key"'"]' <<< "$manifest")
     value=$(deref "$ref")
     trace "bspwm config by reference - ref : $ref key : $key value : $value"
     bspc config "$key" "$value"
@@ -212,14 +214,10 @@ reload_lemon() {
 }
 
 load_environment_variables() {
-  manifest="${1:?}"
-  eval colors_file=$(jq -r .colors.file <<< "$manifest")
+  local manifest="${1:?}"
+  eval colors_file="$(jq -r .colors.file <<< "$manifest")"
   source "$colors_file"
 }
-
-#
-# Wal configuration
-# 
 
 update_bspwm() {
   local manifest="${1:?}"
@@ -228,19 +226,16 @@ update_bspwm() {
 }
 
 update_wallpaper() {
-  eval manifest=${1:?}
+  eval manifest="${1:?}"
   trace "update wallpaper : $manifest"
   feh --bg-fill "$manifest"
 }
 
 update_colors() {
-  local manifest=${1:?}
+  local manifest="${1:?}"
   trace "update colors : $manifest"
-  colors_type=$(jq -r .type <<< "$manifest")
   x_colors_from_shell "$colors_file" > "$x_colors_file"
   xrdb -merge "$x_colors_file"
-  reload_xst
-  reload_lemon
 }
 
 update_xrdb() {
@@ -248,12 +243,10 @@ update_xrdb() {
   trace "update xrdb : $manifest"
   # Set configs based on references
   for key in $(jq -r '.refs | keys[]' <<< "$manifest"); do
-    ref=$(jq -r '.refs["'$key'"]' <<< "$manifest")
+    ref=$(jq -r '.refs["'"$key"'"]' <<< "$manifest")
     value=$(deref "$ref")
     echo "${key}: $value" | xrdb -merge
   done
-  reload_xst
-  reload_lemon
 }
 
 load_environment_variables "$theme"
@@ -263,3 +256,5 @@ for section in $(jq -r keys[] <<< "$theme"); do
   update_"$section" "$manifest"
 done
 
+reload_xst
+reload_lemon

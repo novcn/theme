@@ -40,9 +40,27 @@ themes:
         st.font: "F:iosevka"
     bspwm:
       values:
-        window_gap: 45
-        split_ratio: 0.55
+        window_gap: 16
+        split_ratio: 0.50
         border_width: 5
+      refs:
+        normal_border_color: "C:8"
+        focused_border_color: "C:10"
+        presel_feedback_color: "C:15"
+
+  waltz:
+    colors:
+      type: shell
+      file: "${THEME_DIR}/themes/waltz/colors"
+    wallpaper: "${THEME_DIR}/themes/waltz/factory.jpg"
+    xrdb:
+      refs:
+        st.font: "F:cozette"
+    bspwm:
+      values:
+        window_gap: 24
+        split_ratio: 0.50
+        border_width: 3
       refs:
         normal_border_color: "C:8"
         focused_border_color: "C:10"
