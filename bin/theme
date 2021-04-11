@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 THEME_DIR=$HOME/.themes
+RELOAD_COMMAND_FILE=$HOME/.themerl
+COMMAND_ARGS="$0 $@"
 
 theme_file=${THEME_DIR}/themes/index.yml
 x_colors_file="${THEME_DIR}/cache/colors.xrdb"
@@ -104,15 +106,18 @@ done
 #
 # Reload config
 #
-if [[ "$RELOAD" == "1" ]]; then
-  current_theme=$(jq .current.theme <<< "$json")
-  [[ "$LIGHT" == "0" ]] && {
-    LIGHT=$(jq -r 'if .current.light then "1" else "0" end'  <<< "$json")
-  }
-  theme=$(jq .themes["$current_theme"] <<< "$json")
+if [ "$RELOAD" == "1" ] && [ -x "$RELOAD_COMMAND_FILE" ]; then
+  "$RELOAD_COMMAND_FILE"
+  exit $?
 else
-  theme=$(jq .themes[\""$THEME\""] <<< "$json")
+  {
+    echo "#!/bin/sh"
+    echo "$COMMAND_ARGS"
+  } > "$RELOAD_COMMAND_FILE"
+  chmod +x "$RELOAD_COMMAND_FILE"
 fi
+
+theme=$(jq .themes[\""$THEME\""] <<< "$json")
 
 x_colors_from_shell() {
   local file=${1:?}
@@ -226,9 +231,17 @@ update_bspwm() {
 }
 
 update_wallpaper() {
-  eval manifest="${1:?}"
+  local manifest="${1:?}"
+  eval file=$(jq -r .file <<< "$manifest")
+  options=""
+  for key in $(jq -r 'keys[]' <<< "$manifest"); do
+    if [ "$key" != "file" ]; then
+      value=$(jq -r ".${key}" <<< "$manifest")
+      options="${options} --${key} ${value}"
+    fi
+  done
   trace "update wallpaper : $manifest"
-  feh --bg-fill "$manifest"
+  feh --bg-fill $file $options
 }
 
 update_colors() {

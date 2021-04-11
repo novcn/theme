@@ -1,11 +1,7 @@
-current:
-  theme: voxcity
-  invert: false
-
 # Font size declaration for 100 DPI displays. End size will be calculated
 fonts:
   iosevka:
-    size: 14
+    size: 17
     fullname: "Iosevka Term"
   cozette:
     size: 17
@@ -17,7 +13,8 @@ themes:
     colors:
       type: shell
       file: "${THEME_DIR}/themes/voxcity/colors"
-    wallpaper: "${THEME_DIR}/themes/voxcity/wall.png"
+    wallpaper:
+      file: "${THEME_DIR}/themes/voxcity/wall.png"
     xrdb:
       refs:
         st.font: "F:cozette"
@@ -34,7 +31,8 @@ themes:
     colors:
       type: shell
       file: "${THEME_DIR}/themes/factory/colors"
-    wallpaper: "${THEME_DIR}/themes/factory/factory.jpg"
+    wallpaper:
+      file: "${THEME_DIR}/themes/factory/factory.jpg"
     xrdb:
       refs:
         st.font: "F:iosevka"
@@ -52,7 +50,8 @@ themes:
     colors:
       type: shell
       file: "${THEME_DIR}/themes/waltz/colors"
-    wallpaper: "${THEME_DIR}/themes/waltz/factory.jpg"
+    wallpaper:
+      file: "${THEME_DIR}/themes/waltz/factory.jpg"
     xrdb:
       refs:
         st.font: "F:cozette"
@@ -66,17 +65,35 @@ themes:
         focused_border_color: "C:10"
         presel_feedback_color: "C:15"
 
-  sadboy:
+  pilot:
     colors:
-      type: wal
-      backend: haishoku
-    wallpaper: "${THEME_DIR}/themes/sadboy/wall.jpg"
+      type: shell
+      file: "${THEME_DIR}/themes/pilot/colors"
+    wallpaper:
+      file: "${THEME_DIR}/themes/pilot/pilot.jpg"
     bspwm:
       values:
         window_gap: 10
         split_ratio: 0.5
-        border_width: 7
+        border_width: 8
       refs:
-        normal_border_color: "C:8"
-        focused_border_color: "C:10"
+        normal_border_color: "C:12"
+        focused_border_color: "C:9"
+        presel_feedback_color: "C:15"
+
+  trash:
+    colors:
+      type: shell
+      file: "${THEME_DIR}/themes/trash/colors"
+    wallpaper:
+      file: "${THEME_DIR}/themes/trash/bg.jpg"
+      geometry: "+0+11000"
+    bspwm:
+      values:
+        window_gap: 10
+        split_ratio: 0.5
+        border_width: 8
+      refs:
+        normal_border_color: "C:12"
+        focused_border_color: "C:9"
         presel_feedback_color: "C:15"

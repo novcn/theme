@@ -1,0 +1,36 @@
+# special
+foreground='#ffffff'
+background='#0b121c'
+cursorColor='#ffffff'
+
+# black
+color0='#531485'
+color8='#418588'
+
+# red
+color1='#3f196c'
+color9='#8900c7'
+
+# green
+color2='#2c2054'
+color10='#303932'
+
+# yellow
+color3='#192c41'
+color11='#647cd4'
+
+# blue
+color4='#6cacad'
+color12='#669aed'
+
+# magenta
+color5='#56a3c1'
+color13='#322783'
+
+# cyan
+color6='#6ab3d6'
+color14='#6cacad'
+
+# white
+color7='#4d87ad'
+color15='#436298'
